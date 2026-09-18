@@ -15,4 +15,5 @@ add_executable(xba_tests test_bucket_model.cpp test_batted_ball.cpp)
 target_link_libraries(xba_tests PRIVATE xba_core Catch2::Catch2WithMain)
 
 # One CTest entry per TEST_CASE, instead of a single pass/fail for the whole binary.
-catch_discover_tests(xba_tests)
+# WORKING_DIRECTORY lets tests open fixture files with a plain relative path.
+catch_discover_tests(xba_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,0 +1,4 @@
+game_date,player_name,batter,launch_speed,launch_angle,events,estimated_ba_using_speedangle
+2021-08-19,Aaron Judge,592450,105.4,27,home_run,0.850
+2021-08-19,Mike Trout,545361,72.1,-15,field_out,0.010
+2021-08-20,Shohei Ohtani,660271,88.3,4,single,
