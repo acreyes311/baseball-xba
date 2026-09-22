@@ -10,8 +10,8 @@
 struct BattedBall
 {
     std::string gameDate;
-    std::string playerName;
-    long batterId;
+    std::string pitcherName;
+    long pitcherId;
     double launchSpeed;
     int launchAngle;
     std::string events;

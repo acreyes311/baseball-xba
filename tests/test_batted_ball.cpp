@@ -18,8 +18,8 @@ TEST_CASE("LoadBattedBalls parses every row from the CSV, including negative ang
     REQUIRE(balls.size() == 3);
 
     REQUIRE(balls[0].gameDate == "2021-08-19");
-    REQUIRE(balls[0].playerName == "Aaron Judge");
-    REQUIRE(balls[0].batterId == 592450);
+    REQUIRE(balls[0].pitcherName == "Cole, Gerrit"); // "Last, First" with a quoted comma, like real Statcast data
+    REQUIRE(balls[0].pitcherId == 543037);
     REQUIRE(balls[0].launchSpeed == Catch::Approx(105.4));
     REQUIRE(balls[0].launchAngle == 27);
     REQUIRE(balls[0].events == "home_run");

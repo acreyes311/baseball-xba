@@ -15,8 +15,8 @@ std::vector<BattedBall> LoadBattedBalls(const std::string &csvPath)
     rapidcsv::Document doc(csvPath);
 
     const std::vector<std::string> gameDates = doc.GetColumn<std::string>("game_date");
-    const std::vector<std::string> playerNames = doc.GetColumn<std::string>("player_name");
-    const std::vector<long> batterIds = doc.GetColumn<long>("batter");
+    const std::vector<std::string> pitcherNames = doc.GetColumn<std::string>("player_name");
+    const std::vector<long> pitcherIds = doc.GetColumn<long>("pitcher");
     const std::vector<double> launchSpeeds = doc.GetColumn<double>("launch_speed");
     const std::vector<int> launchAngles = doc.GetColumn<int>("launch_angle");
     const std::vector<std::string> events = doc.GetColumn<std::string>("events");
@@ -46,8 +46,8 @@ std::vector<BattedBall> LoadBattedBalls(const std::string &csvPath)
     {
         battedBalls.push_back(BattedBall{
             gameDates[i],
-            playerNames[i],
-            batterIds[i],
+            pitcherNames[i],
+            pitcherIds[i],
             launchSpeeds[i],
             launchAngles[i],
             events[i],

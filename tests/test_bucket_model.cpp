@@ -9,7 +9,7 @@ namespace
     // (launchSpeed, launchAngle, events). Used default values for other fields to simplify test cases.
     BattedBall MakeBall(double launchSpeed, int launchAngle, std::string events)
     {
-        return BattedBall{"2024-01-01", "Test Player", 1,
+        return BattedBall{"2024-01-01", "Test Pitcher", 1,
                           launchSpeed, launchAngle, std::move(events), std::nullopt};
     }
 } // namespace

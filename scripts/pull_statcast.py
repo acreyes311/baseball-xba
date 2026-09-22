@@ -13,12 +13,13 @@ START_DATE = "2026-06-01"
 END_DATE = "2026-06-30"
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "statcast_june2026.csv"
 
-# Only the columns the xBA bucket model (and player lookup) actually need,
-# out of pybaseball's ~90-column pitch-tracking schema.
+# Only the columns the xBA bucket model (and pitcher lookup) actually need,
+# out of pybaseball's 119-column pitch-tracking schema. player_name is the
+# pitcher (this is pitch-level data), so pitcher is its matching id column.
 COLUMNS = [
     "game_date",
     "player_name",
-    "batter",
+    "pitcher",
     "launch_speed",
     "launch_angle",
     "events",
