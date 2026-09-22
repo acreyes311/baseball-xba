@@ -34,6 +34,7 @@ namespace
     }
 }
 
+// COMPUTE PITCHER XBA TESTS
 TEST_CASE("ComputePitcherXba averages bucket hit rates across multiple balls for one pitcher", "[pitcher_xba]")
 {
     // Two balls from the same pitcher, landing in two different buckets with
@@ -54,7 +55,7 @@ TEST_CASE("ComputePitcherXba averages bucket hit rates across multiple balls for
     REQUIRE(pitchers[0].pitcherName == "Test Pitcher");
     REQUIRE(pitchers[0].battedBallCount == 2);
     REQUIRE(pitchers[0].xbaAllowed == Catch::Approx(0.625)); // (0.5 + 0.75) / 2
-    REQUIRE_FALSE(pitchers[0].percentile.has_value()); // ComputePitcherXba never sets this
+    REQUIRE_FALSE(pitchers[0].percentile.has_value());       // ComputePitcherXba never sets this
 }
 
 TEST_CASE("ComputePitcherXba keeps separate totals for multiple distinct pitchers", "[pitcher_xba]")
@@ -96,4 +97,37 @@ TEST_CASE("ComputePitcherXba throws std::out_of_range when a ball's bucket is mi
     std::vector<BattedBall> balls = {MakeBall(1, "Test Pitcher", 90.0, 10)};
 
     REQUIRE_THROWS_AS(ComputePitcherXba(balls, {}), std::out_of_range);
+}
+
+// PERCENTILE RANKING TESTS
+TEST_CASE("PercentileRank counts strictly-less entries in a list with duplicates", "[pitcher_xba]")
+{
+    // 0.3 sits at index 3 (the two 0.2s and the 0.1 all count as less than,
+    // but 0.3 doesn't count itself), so 100 * 3/5 = 60.0.
+    REQUIRE(PercentileRank(0.3, {0.1, 0.2, 0.2, 0.3, 0.4}) == Catch::Approx(60.0));
+}
+
+// Empty list
+TEST_CASE("PercentileRank returns 0.0 for an empty sortedValues vector", "[pitcher_xba]")
+{
+    REQUIRE(PercentileRank(5.0, {}) == 0.0);
+}
+
+// Value below every entry
+TEST_CASE("PercentileRank returns 0.0 when value is below every entry", "[pitcher_xba]")
+{
+    REQUIRE(PercentileRank(0.05, {0.1, 0.2, 0.3}) == Catch::Approx(0.0));
+}
+
+// Value above every entry
+TEST_CASE("PercentileRank returns 100.0 when value is above every entry", "[pitcher_xba]")
+{
+    REQUIRE(PercentileRank(0.5, {0.1, 0.2, 0.3}) == Catch::Approx(100.0));
+}
+
+TEST_CASE("PercentileRank excludes an exact match from its own count", "[pitcher_xba]")
+{
+    // 0.2 is itself a duplicate in the list. Only the 0.1 counts as strictly
+    // less, so 100 * 1/4 = 25.0 -- neither 0.2 counts toward its own rank.
+    REQUIRE(PercentileRank(0.2, {0.1, 0.2, 0.2, 0.3}) == Catch::Approx(25.0));
 }
