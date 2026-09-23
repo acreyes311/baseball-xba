@@ -100,6 +100,8 @@ TEST_CASE("ComputePitcherXba throws std::out_of_range when a ball's bucket is mi
 }
 
 // PERCENTILE RANKING TESTS
+
+// Sorted list with duplicates
 TEST_CASE("PercentileRank counts strictly-less entries in a list with duplicates", "[pitcher_xba]")
 {
     // 0.3 sits at index 3 (the two 0.2s and the 0.1 all count as less than,
@@ -125,9 +127,106 @@ TEST_CASE("PercentileRank returns 100.0 when value is above every entry", "[pitc
     REQUIRE(PercentileRank(0.5, {0.1, 0.2, 0.3}) == Catch::Approx(100.0));
 }
 
+// Value equal to an entry, but not the first or last
 TEST_CASE("PercentileRank excludes an exact match from its own count", "[pitcher_xba]")
 {
     // 0.2 is itself a duplicate in the list. Only the 0.1 counts as strictly
     // less, so 100 * 1/4 = 25.0 -- neither 0.2 counts toward its own rank.
     REQUIRE(PercentileRank(0.2, {0.1, 0.2, 0.2, 0.3}) == Catch::Approx(25.0));
+}
+
+// ASSIGN PERCENTILES TESTS
+
+// Below threshold tests
+TEST_CASE("AssignPercentiles excludes below-threshold pitchers from the pool but keeps them in the result",
+          "[pitcher_xba]")
+{
+    // Pitcher C has the best (lowest) raw xbaAllowed of all three, but only 1 batted ball,
+    // below the minBattedBalls of 2. If AssignPercentiles let  pitcher C sneak into the
+    // qualified pool, A would no longer look like the best qualified pitcher
+    std::vector<PitcherXba> pitchers = {
+        MakePitcher(1, 2, 0.1), // A: qualified
+        MakePitcher(2, 2, 0.3), // B: qualified
+        MakePitcher(3, 1, 0.0), // C: not qualified, despite the best raw xba
+    };
+
+    std::vector<PitcherXba> result = AssignPercentiles(pitchers, 2);
+
+    REQUIRE(result.size() == 3);
+
+    const PitcherXba &pitcherC = FindPitcher(result, 3);
+    REQUIRE(pitcherC.battedBallCount == 1);             // C's own stats pass through unchanged
+    REQUIRE(pitcherC.xbaAllowed == Catch::Approx(0.0)); // C's own stats pass through unchanged
+    REQUIRE_FALSE(pitcherC.percentile.has_value());     // C still has no percentile, just no xba to compare it to
+
+    // A should rank 100.0 (best of the qualified pool). If C's 0.0 had
+    // leaked into the pool, A would rank lower than 100.0 instead.
+    const PitcherXba &pitcherA = FindPitcher(result, 1);
+    REQUIRE(pitcherA.percentile.value() == Catch::Approx(100.0));
+}
+
+// Tie percentiles tests
+TEST_CASE("AssignPercentiles flips the ranking so the lowest xbaAllowed lands at the highest percentile",
+          "[pitcher_xba]")
+{
+    // All 5 pitchers qualify. Each pitcher's percentile is based on how many of the
+    // 5 xbaAllowed values are smaller than that pitcher's own value, then flipped
+    // since a low xbaAllowed (fewer hits allowed) is good pitching and should rank
+    // near 100, not 0.
+    // xbaAllowed:   0.1    0.2   0.2   0.3   0.4
+    // percentile:   100.0  80.0  80.0  40.0  20.0
+    std::vector<PitcherXba> pitchers = {
+        MakePitcher(1, 2, 0.1),
+        MakePitcher(2, 2, 0.2),
+        MakePitcher(3, 2, 0.2), // tied with pitcher 2
+        MakePitcher(4, 2, 0.3),
+        MakePitcher(5, 2, 0.4),
+    };
+
+    std::vector<PitcherXba> result = AssignPercentiles(pitchers, 2);
+
+    REQUIRE(FindPitcher(result, 1).percentile.value() == Catch::Approx(100.0));
+    REQUIRE(FindPitcher(result, 2).percentile.value() == Catch::Approx(80.0));
+    REQUIRE(FindPitcher(result, 3).percentile.value() == Catch::Approx(80.0)); // tied pitchers get equal percentiles
+    REQUIRE(FindPitcher(result, 4).percentile.value() == Catch::Approx(40.0));
+    REQUIRE(FindPitcher(result, 5).percentile.value() == Catch::Approx(20.0));
+}
+
+// Input not mutated test
+TEST_CASE("AssignPercentiles does not mutate the pitchers vector passed in", "[pitcher_xba]")
+{
+    // AssignPercentiles builds its own copy (result = pitchers) instead of editing
+    // pitchers in place. Every entry here starts with percentile unset; after the
+    // call, the original vector should still be untouched, even though the
+    // qualified pitcher's copy in result now has a percentile.
+    std::vector<PitcherXba> pitchers = {
+        MakePitcher(1, 2, 0.1), // qualified
+        MakePitcher(2, 1, 0.2), // not qualified
+    };
+
+    std::vector<PitcherXba> result = AssignPercentiles(pitchers, 2);
+
+    REQUIRE(FindPitcher(result, 1).percentile.has_value()); // result's copy was updated
+
+    for (const PitcherXba &pitcher : pitchers)
+    {
+        REQUIRE_FALSE(pitcher.percentile.has_value()); // original is unchanged
+    }
+}
+
+// No qualified pitchers test
+TEST_CASE("AssignPercentiles leaves every percentile unset when no pitcher meets minBattedBalls", "[pitcher_xba]")
+{
+    // Both pitchers fall short of minBattedBalls, so the qualified pool is empty
+    // and the assignment loop's if-check never runs for anyone.
+    std::vector<PitcherXba> pitchers = {
+        MakePitcher(1, 1, 0.1),
+        MakePitcher(2, 1, 0.2),
+    };
+
+    std::vector<PitcherXba> result = AssignPercentiles(pitchers, 2);
+
+    REQUIRE(result.size() == 2);
+    REQUIRE_FALSE(FindPitcher(result, 1).percentile.has_value());
+    REQUIRE_FALSE(FindPitcher(result, 2).percentile.has_value());
 }
