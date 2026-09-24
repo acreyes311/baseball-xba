@@ -4,8 +4,8 @@
 
 namespace
 {
-    // The lookup functions only read pitcherId and pitcherName,
-    // so the stat fields get default values.
+    // The name search only reads pitcherName, and the tests use pitcherId to tell
+    // matches apart, so the stat fields get default values.
     PitcherXba MakePitcher(long pitcherId, std::string pitcherName)
     {
         return PitcherXba{pitcherId, std::move(pitcherName), 0, 0.0, std::nullopt};
@@ -22,24 +22,6 @@ namespace
         };
     }
 } // namespace
-
-// FIND PITCHER BY ID TESTS
-TEST_CASE("FindPitcherById returns the pitcher with a matching id", "[pitcher_lookup]")
-{
-    const std::vector<PitcherXba> pitchers = MakeLeague();
-
-    const std::optional<PitcherXba> found = FindPitcherById(pitchers, 2);
-
-    REQUIRE(found.has_value());
-    REQUIRE(found->pitcherName == "Smith, Will");
-}
-
-TEST_CASE("FindPitcherById returns nothing for an unknown id", "[pitcher_lookup]")
-{
-    const std::vector<PitcherXba> pitchers = MakeLeague();
-
-    REQUIRE_FALSE(FindPitcherById(pitchers, 999).has_value());
-}
 
 // FIND PITCHERS BY NAME TESTS
 TEST_CASE("FindPitchersByName matches a name at index 0", "[pitcher_lookup]")

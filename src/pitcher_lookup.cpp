@@ -17,18 +17,6 @@ namespace
     }
 } // namespace
 
-std::optional<PitcherXba> FindPitcherById(const std::vector<PitcherXba> &pitchers, long pitcherId)
-{
-    for (const PitcherXba &pitcher : pitchers)
-    {
-        if (pitcher.pitcherId == pitcherId)
-        {
-            return pitcher;
-        }
-    }
-    return std::nullopt;
-}
-
 std::vector<PitcherXba> FindPitchersByName(const std::vector<PitcherXba> &pitchers,
                                            const std::string &query)
 {
