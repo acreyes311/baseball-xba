@@ -11,7 +11,7 @@ FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
 
-add_executable(xba_tests test_bucket_model.cpp test_batted_ball.cpp test_pitcher_xba.cpp test_pitcher_lookup.cpp test_stat_card.cpp)
+add_executable(xba_tests test_bucket_model.cpp test_batted_ball.cpp test_pitcher_xba.cpp test_pitcher_lookup.cpp test_stat_card.cpp test_cli_input.cpp)
 target_link_libraries(xba_tests PRIVATE xba_core Catch2::Catch2WithMain)
 
 # One CTest entry per TEST_CASE, instead of a single pass/fail for the whole binary.
