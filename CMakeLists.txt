@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(xba_core src/batted_ball.cpp src/bucket_model.cpp src/pitcher_xba.cpp src/pitcher_lookup.cpp src/stat_card.cpp src/cli_input.cpp)
 target_include_directories(xba_core PUBLIC include)
 
-add_executable(baseball_xba src/main.cpp)
+add_executable(baseball_xba src/main.cpp src/search_menu.cpp)
 target_link_libraries(baseball_xba PRIVATE xba_core)
 
 enable_testing()
