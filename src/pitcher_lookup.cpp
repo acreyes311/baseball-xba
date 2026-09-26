@@ -1,6 +1,8 @@
 #include "pitcher_lookup.hpp"
 
+#include <algorithm>
 #include <cctype>
+#include <sstream>
 
 namespace
 {
@@ -15,6 +17,20 @@ namespace
         }
         return text;
     }
+
+    // Splits text into its words ("  paul   skenes " becomes {"paul", "skenes"}).
+    std::vector<std::string> SplitWords(const std::string &text)
+    {
+        // >> reads one word at a time and skips any spaces around it.
+        std::istringstream stream(text);
+        std::vector<std::string> words;
+        std::string word;
+        while (stream >> word)
+        {
+            words.push_back(word);
+        }
+        return words;
+    }
 } // namespace
 
 std::vector<PitcherXba> FindPitchersByName(const std::vector<PitcherXba> &pitchers,
@@ -22,16 +38,22 @@ std::vector<PitcherXba> FindPitchersByName(const std::vector<PitcherXba> &pitche
 {
     std::vector<PitcherXba> matches;
 
-    // An empty query would match every name, so treat it as matching nothing.
-    if (query.empty())
+    // No words (an empty query, or only spaces) would match every name, so treat it as matching nothing.
+    const std::vector<std::string> words = SplitWords(ToLower(query));
+    if (words.empty())
     {
         return matches;
     }
 
-    const std::string lowerQuery = ToLower(query);
     for (const PitcherXba &pitcher : pitchers)
     {
-        if (ToLower(pitcher.pitcherName).find(lowerQuery) != std::string::npos)
+        const std::string lowerName = ToLower(pitcher.pitcherName);
+
+        // A pitcher matches only if every word shows up somewhere in their name.
+        const bool allWordsFound = std::all_of(words.begin(), words.end(),
+                                               [&lowerName](const std::string &word)
+                                               { return lowerName.find(word) != std::string::npos; });
+        if (allWordsFound)
         {
             matches.push_back(pitcher);
         }
