@@ -24,6 +24,8 @@ namespace
 } // namespace
 
 // FIND PITCHERS BY NAME TESTS
+
+// Match at index 0 test
 TEST_CASE("FindPitchersByName matches a name at index 0", "[pitcher_lookup]")
 {
     // "Skenes" starts at index 0 of "Skenes, Paul". This catches the bug of
@@ -36,6 +38,7 @@ TEST_CASE("FindPitchersByName matches a name at index 0", "[pitcher_lookup]")
     REQUIRE(matches[0].pitcherId == 1);
 }
 
+// Upper/lower case test
 TEST_CASE("FindPitchersByName ignores upper/lower case", "[pitcher_lookup]")
 {
     const std::vector<PitcherXba> pitchers = MakeLeague();
@@ -46,6 +49,7 @@ TEST_CASE("FindPitchersByName ignores upper/lower case", "[pitcher_lookup]")
     REQUIRE(FindPitchersByName(pitchers, "pAuL").size() == 1);
 }
 
+// Several matches test
 TEST_CASE("FindPitchersByName returns every pitcher whose name matches", "[pitcher_lookup]")
 {
     const std::vector<PitcherXba> pitchers = MakeLeague();
@@ -57,6 +61,45 @@ TEST_CASE("FindPitchersByName returns every pitcher whose name matches", "[pitch
     REQUIRE(matches[1].pitcherId == 3);
 }
 
+// Any word order test
+TEST_CASE("FindPitchersByName matches every word, in any order", "[pitcher_lookup]")
+{
+    // The data stores names as "Last, First", but people usually type "First Last".
+    // "smith" alone matches two pitchers, so these also check that "will" narrows it to one.
+    const std::vector<PitcherXba> pitchers = MakeLeague();
+
+    for (const std::string query : {"will smith", "smith will", "Smith, Will"})
+    {
+        const std::vector<PitcherXba> matches = FindPitchersByName(pitchers, query);
+
+        REQUIRE(matches.size() == 1);
+        REQUIRE(matches[0].pitcherId == 2);
+    }
+}
+
+// Every word must match test
+TEST_CASE("FindPitchersByName needs every word to match the same pitcher", "[pitcher_lookup]")
+{
+    // "will" matches Will Smith and "skenes" matches Paul Skenes, but no one pitcher
+    // has both. This catches an easy mixup of using std::any_of instead of std::all_of.
+    const std::vector<PitcherXba> pitchers = MakeLeague();
+
+    REQUIRE(FindPitchersByName(pitchers, "will skenes").empty());
+}
+
+// Extra spaces test
+TEST_CASE("FindPitchersByName ignores extra spaces", "[pitcher_lookup]")
+{
+    // Spaces before, between, and after the words shouldn't create empty words.
+    const std::vector<PitcherXba> pitchers = MakeLeague();
+
+    const std::vector<PitcherXba> matches = FindPitchersByName(pitchers, "  will   smith  ");
+
+    REQUIRE(matches.size() == 1);
+    REQUIRE(matches[0].pitcherId == 2);
+}
+
+// No match test
 TEST_CASE("FindPitchersByName returns nothing when no name matches", "[pitcher_lookup]")
 {
     const std::vector<PitcherXba> pitchers = MakeLeague();
@@ -64,11 +107,21 @@ TEST_CASE("FindPitchersByName returns nothing when no name matches", "[pitcher_l
     REQUIRE(FindPitchersByName(pitchers, "Cole").empty());
 }
 
+// Empty query test
 TEST_CASE("FindPitchersByName returns nothing for an empty query", "[pitcher_lookup]")
 {
-    // "" is technically contained in every string, so without the empty-query
-    // check this would return all three pitchers.
+    // An empty query has no words, and std::all_of over no words is true, so
+    // without the no-words check this would return all three pitchers.
     const std::vector<PitcherXba> pitchers = MakeLeague();
 
     REQUIRE(FindPitchersByName(pitchers, "").empty());
+}
+
+// Only spaces test
+TEST_CASE("FindPitchersByName returns nothing for a query of only spaces", "[pitcher_lookup]")
+{
+    // Spaces aren't words, so this has no words either, the same as an empty query.
+    const std::vector<PitcherXba> pitchers = MakeLeague();
+
+    REQUIRE(FindPitchersByName(pitchers, "   ").empty());
 }
