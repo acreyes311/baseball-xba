@@ -70,6 +70,8 @@ TEST_CASE("FindPitchersByName matches every word, in any order", "[pitcher_looku
 
     for (const std::string query : {"will smith", "smith will", "Smith, Will"})
     {
+        // CAPTURE prints the query if a check fails, so we know which case broke.
+        CAPTURE(query);
         const std::vector<PitcherXba> matches = FindPitchersByName(pitchers, query);
 
         REQUIRE(matches.size() == 1);
