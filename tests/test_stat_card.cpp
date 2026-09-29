@@ -17,7 +17,20 @@ TEST_CASE("FormatStatCard prints every field for a qualified pitcher", "[stat_ca
     REQUIRE(FormatStatCard(pitcher) == "Skenes, Paul (id 694973)\n"
                                        "  xBA allowed:   .215\n"
                                        "  Batted balls:  84\n"
-                                       "  Percentile:    92nd  ██████████████████░░\n");
+                                       "  Percentile:    92nd  "
+                                       "\033[38;2;209;62;62m" // red, the color for 92
+                                       "██████████████████░░"
+                                       "\033[0m\n");           // back to the normal color (turn off styling)
+}
+
+// Bar color test
+TEST_CASE("FormatStatCard colors the bar, then resets the color", "[stat_card]")
+{
+    const PitcherXba pitcher{1, "Test, Pitcher", 30, 0.250, 25.0};
+
+    // 25 is blue blended halfway into grey. The reset comes right after the bar, so nothing else is colored.
+    REQUIRE_THAT(FormatStatCard(pitcher),
+                 ContainsSubstring("\033[38;2;115;140;190m█████░░░░░░░░░░░░░░░\033[0m\n"));
 }
 
 // xBA format test

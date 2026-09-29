@@ -1,6 +1,7 @@
 #include "stat_card.hpp"
 
 #include "percentile_bar.hpp"
+#include "percentile_color.hpp"
 
 #include <cmath>
 #include <iomanip>
@@ -45,6 +46,18 @@ namespace
             return "th";
         }
     }
+
+    // Terminal code that switches the text color to `color`.
+    // "\033[" starts the code, "38;2;" means "text color, given as red;green;blue", and "m" ends it.
+    std::string TerminalColor(Rgb color)
+    {
+        std::ostringstream code;
+        code << "\033[38;2;" << color.red << ';' << color.green << ';' << color.blue << 'm';
+        return code.str();
+    }
+
+    // Terminal code that switches the text back to its normal color (turn off styling).
+    const std::string kTerminalReset = "\033[0m";
 } // namespace
 
 std::string FormatStatCard(const PitcherXba &pitcher)
@@ -58,8 +71,10 @@ std::string FormatStatCard(const PitcherXba &pitcher)
     // Only pitchers with enough batted balls have a percentile, so check before reading it with *.
     if (pitcher.percentile.has_value())
     {
-        const long rounded = std::lround(*pitcher.percentile);
-        card << rounded << OrdinalSuffix(rounded) << "  " << PercentileBar(*pitcher.percentile) << "\n";
+        const double percentile = *pitcher.percentile;
+        const long rounded = std::lround(percentile);
+        card << rounded << OrdinalSuffix(rounded) << "  "
+             << TerminalColor(PercentileColor(percentile)) << PercentileBar(percentile) << kTerminalReset << "\n";
     }
     else
     {
