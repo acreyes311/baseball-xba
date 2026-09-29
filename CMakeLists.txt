@@ -4,7 +4,7 @@ project(baseball_xba CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(xba_core src/batted_ball.cpp src/bucket_model.cpp src/pitcher_xba.cpp src/pitcher_lookup.cpp src/stat_card.cpp src/cli_input.cpp src/percentile_bar.cpp)
+add_library(xba_core src/batted_ball.cpp src/bucket_model.cpp src/pitcher_xba.cpp src/pitcher_lookup.cpp src/stat_card.cpp src/cli_input.cpp src/percentile_bar.cpp src/percentile_color.cpp)
 target_include_directories(xba_core PUBLIC include)
 
 add_executable(baseball_xba src/main.cpp src/search_menu.cpp)
