@@ -17,7 +17,7 @@ TEST_CASE("FormatStatCard prints every field for a qualified pitcher", "[stat_ca
     REQUIRE(FormatStatCard(pitcher) == "Skenes, Paul (id 694973)\n"
                                        "  xBA allowed:   .215\n"
                                        "  Batted balls:  84\n"
-                                       "  Percentile:    92nd\n");
+                                       "  Percentile:    92nd  ██████████████████░░\n");
 }
 
 // xBA format test
@@ -50,7 +50,8 @@ TEST_CASE("FormatStatCard uses the right ordinal suffix", "[stat_card]")
         // CAPTURE prints these values if a check fails, so we know which case broke.
         CAPTURE(percentile, expected);
         const PitcherXba pitcher{1, "Test, Pitcher", 30, 0.250, percentile};
-        REQUIRE_THAT(FormatStatCard(pitcher), ContainsSubstring("Percentile:    " + expected + "\n"));
+        // The two spaces before the bar mark where the ordinal ends.
+        REQUIRE_THAT(FormatStatCard(pitcher), ContainsSubstring("Percentile:    " + expected + "  "));
     }
 }
 
@@ -59,7 +60,7 @@ TEST_CASE("FormatStatCard rounds the percentile to a whole number", "[stat_card]
 {
     const PitcherXba pitcher{1, "Test, Pitcher", 30, 0.250, 91.6};
 
-    REQUIRE_THAT(FormatStatCard(pitcher), ContainsSubstring("Percentile:    92nd\n"));
+    REQUIRE_THAT(FormatStatCard(pitcher), ContainsSubstring("Percentile:    92nd  "));
 }
 
 // Missing percentile test
@@ -67,6 +68,7 @@ TEST_CASE("FormatStatCard shows n/a when the pitcher has no percentile", "[stat_
 {
     const PitcherXba pitcher{1, "Test, Pitcher", 12, 0.310, std::nullopt};
 
+    // The line ends right after the message, so there is no bar.
     REQUIRE_THAT(FormatStatCard(pitcher),
                  ContainsSubstring("Percentile:    n/a (needs 20+ batted balls)\n"));
 }

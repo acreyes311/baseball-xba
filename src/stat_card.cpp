@@ -1,5 +1,7 @@
 #include "stat_card.hpp"
 
+#include "percentile_bar.hpp"
+
 #include <cmath>
 #include <iomanip>
 #include <sstream>
@@ -53,10 +55,11 @@ std::string FormatStatCard(const PitcherXba &pitcher)
     card << "  Batted balls:  " << pitcher.battedBallCount << "\n";
 
     card << "  Percentile:    ";
+    // Only pitchers with enough batted balls have a percentile, so check before reading it with *.
     if (pitcher.percentile.has_value())
     {
         const long rounded = std::lround(*pitcher.percentile);
-        card << rounded << OrdinalSuffix(rounded) << "\n";
+        card << rounded << OrdinalSuffix(rounded) << "  " << PercentileBar(*pitcher.percentile) << "\n";
     }
     else
     {
