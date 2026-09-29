@@ -127,3 +127,46 @@ TEST_CASE("FindPitchersByName returns nothing for a query of only spaces", "[pit
 
     REQUIRE(FindPitchersByName(pitchers, "   ").empty());
 }
+
+// Plain query, accented name test
+TEST_CASE("FindPitchersByName finds accented names from a query without accents", "[pitcher_lookup]")
+{
+    // Most people don't type accents. In UTF-8 "á" is 2 bytes, so without removing
+    // accents "sanchez" is never found inside "sánchez".
+    const std::vector<PitcherXba> pitchers = {
+        MakePitcher(1, "Sánchez, Cristopher"),
+        MakePitcher(2, "Peña, Félix"),
+    };
+
+    for (const std::string query : {"sanchez", "SANCHEZ", "cristopher sanchez"})
+    {
+        CAPTURE(query);
+        const std::vector<PitcherXba> matches = FindPitchersByName(pitchers, query);
+
+        REQUIRE(matches.size() == 1);
+        REQUIRE(matches[0].pitcherId == 1);
+    }
+
+    // Covers ñ and é, which are different letters from the á in Sánchez.
+    const std::vector<PitcherXba> matches = FindPitchersByName(pitchers, "felix pena");
+
+    REQUIRE(matches.size() == 1);
+    REQUIRE(matches[0].pitcherId == 2);
+}
+
+// Accented query test
+TEST_CASE("FindPitchersByName still matches when the query has accents", "[pitcher_lookup]")
+{
+    // The query's accents are removed too, not just the name's. If only the name
+    // lost its accents, "Sánchez" would be looked for inside "sanchez" and not found.
+    const std::vector<PitcherXba> pitchers = {MakePitcher(1, "Sánchez, Cristopher")};
+
+    for (const std::string query : {"Sánchez", "sánchez"})
+    {
+        CAPTURE(query);
+        const std::vector<PitcherXba> matches = FindPitchersByName(pitchers, query);
+
+        REQUIRE(matches.size() == 1);
+        REQUIRE(matches[0].pitcherId == 1);
+    }
+}
