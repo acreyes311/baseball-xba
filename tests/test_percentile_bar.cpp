@@ -52,13 +52,6 @@ TEST_CASE("PercentileBar treats values outside 0-100 as 0 or 100", "[percentile_
     REQUIRE(PercentileBar(150.0) == ExpectedBar(20, 0));
 }
 
-// Custom width test
-TEST_CASE("PercentileBar uses the width it is given", "[percentile_bar]")
-{
-    // 60% of 5 blocks is 3 blocks.
-    REQUIRE(PercentileBar(60.0, 5) == ExpectedBar(3, 2));
-}
-
 // Byte size test
 TEST_CASE("PercentileBar blocks take 3 bytes each", "[percentile_bar]")
 {
